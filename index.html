@@ -1,39 +1,103 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Socket.IO chat</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-      #messages { margin-bottom: 40px }
-    </style>
-  </head>
-  <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <script>
-      $(function () {
-        var socket = io();
-        $('form').submit(function(){
-          socket.emit('chat message', $('#m').val());
-          $('#m').val('');
-          return false;
-        });
-        socket.on('chat message', function(msg){
-          $('#messages').append($('<li>').text(msg));
-          window.scrollTo(0, document.body.scrollHeight);
-        });
+
+<head>
+  <title>Socket.IO chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font: 13px Helvetica, Arial;
+    }
+
+    form {
+      background: #000;
+      padding: 3px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    form input {
+      border: 0;
+      padding: 10px;
+      width: 90%;
+      margin-right: .5%;
+    }
+
+    form button {
+      width: 9%;
+      background: rgb(130, 224, 255);
+      border: none;
+      padding: 10px;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages li {
+      padding: 5px 10px;
+    }
+
+    #messages li:nth-child(odd) {
+      background: #eee;
+    }
+
+    #messages {
+      margin-bottom: 40px
+    }
+  </style>
+</head>
+
+<body>
+  <ul id="messages"></ul>
+  <form action="">
+    <input id="m" autocomplete="off" /><button>Send</button>
+  </form>
+  <!-- <script src="http://localhost:3000/socket.io/socket.io-1.7.3.js"></script> -->
+  <!-- <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>
+    $(function () {
+      var socket = io('http://localhost:5000');
+      let token =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1Yzc3OTYxNDVhMmM0MTE5NzA1MWY1YWEiLCJlbWFpbCI6InByYW5qYWxAZ21haWwuY29tIiwibmFtZSI6InByYW5qYWwiLCJleHAiOjE1NTIwMTgzNzIsImlhdCI6MTU1MTQxMzU3Mn0.Gx2uYZpk3xpwlAgAkOJDDC65glGOcduCseeJbxO5Vh4'
+      let name = 'Pranjal Nartam';
+      let id = 1234;
+
+      socket.on('connect', function () {
+        socket
+          .on('authenticated', function () {
+            //do other things
+            console.log('im authenticated');
+            $('form').submit(function () {
+              let msg = $('#m').val();
+              let obj = {id: id, msg: msg, sender: name, timestamp: new Date()}
+              console.log(obj);
+              socket.emit('chat message', JSON.stringify(obj));
+              $('#m').val('');
+              return false;
+            });
+          })
+          .emit('authenticate', {
+            token: token
+          }); //send the jwt
       });
-    </script>
-  </body>
+
+      socket.on('chat message', function (msg) {
+        $('#messages').append($('<li>').text(msg));
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+    });
+  </script>
+</body>
+
 </html>
